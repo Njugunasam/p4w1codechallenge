@@ -18,7 +18,9 @@ if 'sqlalchemy' not in app.extensions:
 migrate = Migrate(app, db)
 
 
+@app.route('/heroes', methods=['GET'])
 def get_heroes():
+    print("Inside get_heroes function")  # Add this line for debugging
     heroes = Hero.query.all()
     heroes_data = [{'id': hero.id, 'name': hero.name,
                     'super_name': hero.super_name} for hero in heroes]
@@ -27,17 +29,23 @@ def get_heroes():
 
 @app.route('/heroes/<int:hero_id>', methods=['GET'])
 def get_hero_by_id(hero_id):
-    hero = Hero.query.get(hero_id)
+    print(f"Inside get_hero_by_id function for hero_id: {hero_id}")  # Add this line for debugging
 
-    if hero:
-        powers_data = [{'id': power.id, 'name': power.name,
-                        'description': power.description} for power in hero.hero_powers]
-        hero_data = {'id': hero.id, 'name': hero.name,
-                     'super_name': hero.super_name, 'powers': powers_data}
-        return jsonify(hero_data)
-    else:
-        return jsonify({'error': 'Hero not found'}), 404
+    try:
+        hero = Hero.query.get(hero_id)
 
+        if hero:
+            powers_data = [{'id': power.id, 'name': power.name,
+                            'description': power.description} for power in hero.hero_powers]
+            hero_data = {'id': hero.id, 'name': hero.name,
+                         'super_name': hero.super_name, 'powers': powers_data}
+            return jsonify(hero_data)
+        else:
+            return jsonify({'error': 'Hero not found'}), 404
+
+    except Exception as e:
+        print(f"Error processing get_hero_by_id: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/powers', methods=['GET'])
 def get_powers(): 
