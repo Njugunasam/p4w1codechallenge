@@ -1,9 +1,13 @@
 # app.py
 from flask import Flask, jsonify, request
 from flask_migrate import Migrate
+from flask_cors import CORS
+
 from models import db, Hero, Power, HeroPower
 import os
 
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for development
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -20,12 +24,13 @@ migrate = Migrate(app, db)
 
 @app.route('/heroes', methods=['GET'])
 def get_heroes():
-    print("Inside get_heroes function")  # Add this line for debugging
-    heroes = Hero.query.all()
-    heroes_data = [{'id': hero.id, 'name': hero.name,
-                    'super_name': hero.super_name} for hero in heroes]
-    return jsonify(heroes_data)
-
+    try:
+        heroes = Hero.query.all()
+        heroes_data = [{'id': hero.id, 'name': hero.name, 'super_name': hero.super_name} for hero in heroes]
+        return jsonify(heroes_data)
+    except Exception as e:
+        print(f"Error fetching heroes: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/heroes/<int:hero_id>', methods=['GET'])
 def get_hero_by_id(hero_id):
